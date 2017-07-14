@@ -10,6 +10,7 @@ val lwjglVersion = "3.1.2"
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
+lazy val `pixel-game` = (project in file("."))//.dependsOn(RootProject(uri("git://github.com/Russoul/UniScalaLib.git")))
 
 
 //DEPENDECIES-----------------------------------------------------------------
@@ -43,7 +44,18 @@ libraryDependencies += lwjglOrganization % "lwjgl-yoga"     % lwjglVersion
 
 //UniScalaLibrary
 libraryDependencies += "org.russoul" %% "uniscalalib" % "0.0.1"
+
 //...
 
 //-----------------------------------------------------------------------------------
 
+/*lazy val reloadGitDeps = taskKey[Unit]("wipe out data from ~/.sbt/0.13/staging/")
+
+
+reloadGitDeps := {
+  val home = sys.env("HOMEPATH")
+  println("\"" + home + "\\.sbt\\0.13\\staging\"")
+  Process("rd /s /q \"" + home + "\\.sbt\\0.13\\staging\"" + " /s /q", file(".")) !
+
+
+}*/
