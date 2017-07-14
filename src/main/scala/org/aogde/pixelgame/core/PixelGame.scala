@@ -3,6 +3,8 @@ package org.aogde.pixelgame.core
 import java.nio.IntBuffer
 
 import org.aogde.pixelgame.component.WindowInfo
+import org.aogde.pixelgame.config.Defaults
+import org.aogde.pixelgame.render.RenderingEngine
 import org.lwjgl.Version
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW._
@@ -12,19 +14,21 @@ import org.lwjgl.opengl.GL11.{GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, glClear,
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
-import Russoul.lib.common._
+import russoul.lib.common._
 
 /**
   * Created by russoul on 14.07.2017.
   */
 class PixelGame{
 
+  val renderingEngine = new RenderingEngine
   private val windowInfo = new WindowInfo(Defaults.initialWindowWidth, Defaults.initialWindowHeight)
 
   def start(): Unit ={
     println("Using LWJGL " + Version.getVersion)
 
-    init()
+    initGraphics()
+    initGame()
     run()
 
     // Free the window callbacks and destroy the window
@@ -36,7 +40,7 @@ class PixelGame{
     glfwSetErrorCallback(null).free()
   }
 
-  private def init(): Unit = {
+  private def initGraphics(): Unit = {
     // Setup an error callback. The default implementation
     // will print the error message in System.err.
     GLFWErrorCallback.createPrint(System.err).set
@@ -85,15 +89,24 @@ class PixelGame{
 
     // Make the window visible
     glfwShowWindow(windowInfo.getID())
-  }
 
-  private def run(): Unit ={
     // This line is critical for LWJGL's interoperation with GLFW's
     // OpenGL context, or any context that is managed externally.
     // LWJGL detects the context that is current in the current thread,
     // creates the GLCapabilities instance and makes the OpenGL
     // bindings available for use.
     GL.createCapabilities
+
+    println("Graphics initialized")
+  }
+
+  private def initGame(): Unit ={
+    renderingEngine.System.loadDefaultShaders(Defaults.defaultShaderPath, Defaults.defaultShaders)
+    println("Shaders loaded")
+  }
+
+  private def run(): Unit ={
+
 
     // Set the clear color
     glClearColor(1.0f, 0.0f, 0.0f, 0.0f)
