@@ -22,18 +22,20 @@ import scala.collection.{TraversableLike, mutable}
   */
 class RenderingEngine {
 
-  class RenderInfo[Life <: RenderLifetime, Trans <: RenderTransformation](val lifetime: Life, val transformation : Trans, renderer: RendererVertFrag)
+  //not used currently
+  //class RenderInfo[Life <: RenderLifetime, Trans <: RenderTransformation](val lifetime: Life, val transformation : Trans, renderer: RendererVertFrag)
 
   object System{ //TODO make it so only game core game code can access this object, not the user code
 
     class ShaderNotFoundException(path: String) extends Exception("Shader not found in path: " + path)
     class ShaderDuplicateNameException(name: String) extends Exception(name)
+    class NoSuchShaderException(name: String) extends Exception(name)
 
     private final val EXTENSION_VERTEX = "vert"
     private final val EXTENSION_FRAGMENT = "frag"
 
     //default in case we add support for custom shaders, loaded from game extensions
-    private val defaultShaders = new mutable.HashMap[String, Shader]
+    val defaultShaders = new mutable.HashMap[String, Shader]
 
 
 
@@ -83,6 +85,10 @@ class RenderingEngine {
 
       //these renderers need to be updated each frame, fully cleared after each framebuffer swap
       //those match LifetimeOneDraw lifetime
+
+      //those things always must contain checked and working info,
+      //so no extra checking is required while performing actual drawing
+      //TODO implement sorting renderers by shader as switching program(shader) is an expensive operation
       val lifetimeOneDrawWorldRenderers = new mutable.HashMap[RenderID, RendererVertFrag]
       val lifetimeOneDrawUIRenderers = new mutable.HashMap[RenderID, RendererVertFrag]
 
@@ -95,7 +101,20 @@ class RenderingEngine {
       }
 
       private def drawUI(windowInfo: WindowInfo): Unit ={
+        for(renderInfo <- lifetimeOneDrawUIRenderers){
+          val render = renderInfo._2
+          val shaderName = render.getShaderName()
+          val shader = defaultShaders(shaderName)
+          shader.enable()
+          //TODO deal with textures + extra values to be passed to rendering pipeline
 
+          render.construct()
+          render.setAttributePointers()
+          render.draw()
+          render.deconstruct()
+
+          shader.disable()
+        }
       }
     }
 
@@ -115,6 +134,9 @@ class RenderingEngine {
 
     //multithread-unsafe
     def push[Life <: RenderLifetime, Trans <: RenderTransformation](lifetime: Life, transformation: Trans, renderer: RendererVertFrag): RenderID ={
+
+      if(!System.defaultShaders.contains(renderer.getShaderName())) throw new System.NoSuchShaderException(renderer.getShaderName())
+
       lifetime match{
         case LifetimeOneDraw =>
 

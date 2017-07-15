@@ -88,12 +88,18 @@ class Shader(vertexSource: String, fragmentSource: String) {
     id(0) == ID
   }
 
+  /**
+    * will check if it is already enabled
+    */
   def enable()
   {
     if(!isInUse())glUseProgram(ID)
 
   }
 
+  /**
+    * will check if it is already disabled
+    */
   def disable()
   {
     if(isInUse())glUseProgram(0)

@@ -1,0 +1,18 @@
+Coord sys:
+    -world coordinate system is defined like so: x increases to the right, y increases to the top
+    -UI coordinate system is defined like so: (0,0) is top left, (screenWidth,screenHeight) is bottom right
+
+        world:
+            y
+            ^
+            |
+            |-------> x
+
+        UI:
+          (0,0)
+            |----------------|
+            |                |
+            |                |
+            |                |
+            |----------------|
+                            (w,h)
