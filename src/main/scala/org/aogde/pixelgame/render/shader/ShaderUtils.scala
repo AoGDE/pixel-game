@@ -47,7 +47,9 @@ object ShaderUtils
     if (compileStatus(0) == 0) {
       System.err.println("Failed to compile vertex shader!")
       println("source:")
+      println("----------------------------------------------------------")
       println(vert)
+      println("----------------------------------------------------------")
       throw new ShaderMakeError(glGetShaderInfoLog(vertID))
       //throw new Exception("Failed to compile vertex shader")
     }
@@ -60,7 +62,9 @@ object ShaderUtils
     if (compileStatus(0) == 0) {
       System.err.println("Failed to compile fragment shader!")
       println("source:")
+      println("----------------------------------------------------------")
       println(frag)
+      println("----------------------------------------------------------")
       throw new ShaderMakeError(glGetShaderInfoLog(fragID))
       //throw new Exception("Failed to compile vertex shader")
     }

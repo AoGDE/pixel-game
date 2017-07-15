@@ -132,11 +132,7 @@ class PixelGame{
     glfwPollEvents()
   }
 
-  def draw(): Unit ={
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) // clear the framebuffer
-
-
-
-    glfwSwapBuffers(windowInfo.getID()) // swap the color buffers
+  def draw(): Unit = { //no manual drawing should be done here, all calls should use RenderingEngine pushes and be performed in update function
+    renderingEngine.System.Render.draw(windowInfo)
   }
 }

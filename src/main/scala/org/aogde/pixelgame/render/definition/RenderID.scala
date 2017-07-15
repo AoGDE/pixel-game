@@ -3,6 +3,4 @@ package org.aogde.pixelgame.render.definition
 /**
   * Created by russoul on 15.07.2017.
   */
-trait IRenderShape {
-
-}
+class RenderID(val id: Long) extends AnyVal //TODO do we get performance benefits ?
