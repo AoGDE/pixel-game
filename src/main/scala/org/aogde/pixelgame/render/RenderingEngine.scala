@@ -26,31 +26,39 @@ class RenderingEngine {
     //default in case we add support for custom shaders, loaded from game extensions
     private val defaultShaders = new mutable.HashMap[String, Shader]
 
-    /**
-      *
-      * @param directory
-      * @param names names of shaders to load, without file extension (names, newNames)
-      */
-    def loadDefaultShaders(directory: String, names: Traversable[(String,String)]): Unit ={
+    object Init{ //TODO check for proper initialization before any rendering
+      /**
+        *
+        * @param directory
+        * @param names names of shaders to load, without file extension (names, newNames)
+        */
+      def loadDefaultShaders(directory: String, names: Traversable[(String,String)]): Unit ={
 
-      for(name <- names){
-        val filePathVert = directory + name._1 + "." + EXTENSION_VERTEX
-        val filePathFrag = directory + name._1 + "." + EXTENSION_FRAGMENT
-        val fileVert = new File(filePathVert)
-        val fileFrag = new File(filePathFrag)
-        if(!fileVert.exists()) throw new ShaderNotFoundException(filePathVert)
-        if(!fileFrag.exists()) throw new ShaderNotFoundException(filePathFrag)
+        for(name <- names){
+          val filePathVert = directory + name._1 + "." + EXTENSION_VERTEX
+          val filePathFrag = directory + name._1 + "." + EXTENSION_FRAGMENT
+          val fileVert = new File(filePathVert)
+          val fileFrag = new File(filePathFrag)
+          if(!fileVert.exists()) throw new ShaderNotFoundException(filePathVert)
+          if(!fileFrag.exists()) throw new ShaderNotFoundException(filePathFrag)
 
-        val sourceVert = Utilities.loadAsString(filePathVert) //TODO new File(..) is called two times
-        val sourceFrag = Utilities.loadAsString(filePathFrag)
+          val sourceVert = Utilities.loadAsString(filePathVert) //TODO new File(..) is called two times
+          val sourceFrag = Utilities.loadAsString(filePathFrag)
 
 
-        val shader = new Shader(sourceVert, sourceFrag)
+          val shader = new Shader(sourceVert, sourceFrag)
 
-        if(defaultShaders.contains(name._2)) throw new ShaderDuplicateNameException(name._2)
+          if(defaultShaders.contains(name._2)) throw new ShaderDuplicateNameException(name._2)
 
-        defaultShaders += name._2 -> shader
+          defaultShaders += name._2 -> shader
+        }
+
       }
+    }
+
+    object Render{
+      //these renderers need to be updated each frame, fully cleared after each framebuffer swap
+      val perFrameRenderers = new mutable.HashMap[String, Renderer]()
 
     }
 
@@ -59,6 +67,18 @@ class RenderingEngine {
 
   object User{
 
+    //TODO
+    //def push(whenToRender, whereToRender, howToRender, whatToRender) : ID = ???
+
+    /*object EachFrame{ //when
+      object UI{ //where
+        object Wireframe{ //how
+          object RegularConvexPolygon{ //what
+
+          }
+        }
+      }
+    }*/
   }
 
 }

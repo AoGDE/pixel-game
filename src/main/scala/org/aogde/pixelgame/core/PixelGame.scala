@@ -101,7 +101,7 @@ class PixelGame{
   }
 
   private def initGame(): Unit ={
-    renderingEngine.System.loadDefaultShaders(Defaults.defaultShaderPath, Defaults.defaultShaders)
+    renderingEngine.System.Init.loadDefaultShaders(Defaults.defaultShaderPath, Defaults.defaultShaders)
     println("Shaders loaded")
   }
 
@@ -122,8 +122,7 @@ class PixelGame{
     }
   }
 
-  def update(): Unit =
-  {
+  def update(): Unit = {
 
   }
 
