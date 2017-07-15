@@ -29,7 +29,7 @@ class RenderingEngine {
     /**
       *
       * @param directory
-      * @param names names of shaders to load, without file extension (names, newName)
+      * @param names names of shaders to load, without file extension (names, newNames)
       */
     def loadDefaultShaders(directory: String, names: Traversable[(String,String)]): Unit ={
 
