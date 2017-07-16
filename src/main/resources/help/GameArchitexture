@@ -16,3 +16,43 @@ Coord sys:
             |                |
             |----------------|
                             (w,h)
+
+
+    WORLD_SIDE_VIEW_2D !!! :
+    -2d side-view camera defines visible world area, defined by 2d rectangle given in world space
+
+        y
+        ^      camera-rec 1
+        |  |-----------------|
+        |  |                 |
+        |  |                 |
+        |  |                 |
+        |  |-----------------|
+        |
+        |      camera-rec 1
+        |         |---------|
+        |         |         |
+        |         |---------|
+        |
+        |__________________________> x
+        O
+    (world space: O(0,0))
+
+    -real screen has (screenWidth,screenHeight); (0,0) is top left, (screenWidth,screenHeight) is bottom right
+
+        Camera can be rendered on screen like so:
+
+        1)          |-----------------| screen == camera
+                    |@@@@@@@@@@@@@@@@@|
+                    |@@@@@@@@@@@@@@@@@|
+                    |@@@@@@@@@@@@@@@@@|
+                    |-----------------|
+
+        2)          |------|----------| screen
+              camera|@@@@@@|##########|
+                    |------|##########|
+                    |#################|
+                    |-----------------|
+
+              where @ is rendered world + possible ui on top of world render,
+                    # any other data.
