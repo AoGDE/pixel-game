@@ -71,11 +71,11 @@ class Shader(vertexSource: String, fragmentSource: String) {
     glUniform4f(getUniform(name), vector.x, vector.y, vector.z, vector.w)
   }
 
-  def setMat4(name: String, matrix: Mat4F)
+  def setMat4(name: String, matrix: Mat4F, transpose: Boolean = false)
   {
 
     if (!enabled) enable
-    glUniformMatrix4fv(getUniform(name), true, matrix.toArray) //in GLSL matrix-vector multiplication is column vector based !!!, transpose is needed !
+    glUniformMatrix4fv(getUniform(name), transpose, matrix.toArray) //in GLSL matrix-vector multiplication is column vector based !!!, transpose is needed !
   }
   //......................................................
 

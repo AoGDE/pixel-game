@@ -29,7 +29,7 @@ class Camera(var view: Rectangle2F)
     */
   def genTranslationMatrix(width:Float, height:Float): Mat4[Float] =
   {
-    Mat4F.matrixTRANSLATION(-view.center._1 +width/2, -view.center._2 + height/2,0)
+    Mat4F.translation(-view.center._0 +width/2, -view.center._1 + height/2,0)
   }
 
 }

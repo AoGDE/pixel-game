@@ -9,8 +9,8 @@ import org.lwjgl.Version
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW._
 import org.lwjgl.glfw.{GLFWErrorCallback, GLFWVidMode}
-import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11.{GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, glClear, glClearColor}
+import org.lwjgl.opengl.{GL, GL11}
+import org.lwjgl.opengl.GL11._
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
@@ -19,10 +19,18 @@ import russoul.lib.common._
 /**
   * Created by russoul on 14.07.2017.
   */
+
+object PixelGame{
+  var instance : PixelGame = _ //TODO good idea ?
+}
 class PixelGame{
 
-  val renderingEngine = new RenderingEngine
+  val renderingEngine = new RenderingEngine(this)
+  val keyCallback = new GameKeyCallback(this)
+  val registry = new GameRegistry(this)
   private val windowInfo = new WindowInfo(Defaults.initialWindowWidth, Defaults.initialWindowHeight)
+
+
 
   def start(): Unit ={
     println("Using LWJGL " + Version.getVersion)
@@ -57,17 +65,13 @@ class PixelGame{
 
 
     // Create the window
-    windowInfo.setID(glfwCreateWindow(300, 300, "Hello World!", NULL, NULL))
+    windowInfo.setID(glfwCreateWindow(300, 300, "Pixel-Game", NULL, NULL))
     if (windowInfo.getID() == NULL) throw new RuntimeException("Failed to create the GLFW window")
 
     // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-    glfwSetKeyCallback(windowInfo.getID(), (window: Long, key: Int, scancode: Int, action: Int, mods: Int) => {
-      def callback(window: Long, key: Int, scancode: Int, action: Int, mods: Int) = {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) glfwSetWindowShouldClose(window, true) // We will detect this in the rendering loop
-      }
+    glfwSetKeyCallback(windowInfo.getID(), keyCallback)
 
-      callback(window, key, scancode, action, mods)
-    })
+
 
     auto(stackPush){ stack =>
       val pWidth = stack.mallocInt(1)
@@ -97,12 +101,22 @@ class PixelGame{
     // bindings available for use.
     GL.createCapabilities
 
+    glfwSetFramebufferSizeCallback(windowInfo.getID(), (win, width, height) => {
+      windowInfo.setWidth(width)
+      windowInfo.setHeight(height)
+
+      glViewport(0,0,width, height)
+    })
+
     println("Graphics initialized")
   }
 
   private def initGame(): Unit ={
     renderingEngine.System.Init.loadDefaultShaders(Defaults.defaultShaderPath, Defaults.defaultShaders)
     println("Shaders loaded")
+
+    registry.System.init()
+    println("All packs loaded")
   }
 
   private def run(): Unit ={
@@ -123,7 +137,7 @@ class PixelGame{
   }
 
   def update(): Unit = {
-
+    registry.System.gameUpdate(windowInfo.const())
   }
 
   def events(): Unit ={

@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL30._
   */
 trait RendererVertFragDefault extends RendererVertFrag{
 
-  protected var vertexSize:Int //not in bytes ! but in number of floating point values per vertex
+  protected val vertexSize:Int //not in bytes ! but in number of floating point values per vertex
   protected val vertexPool = new Arr[Float]
   protected val indexPool = new Arr[Int]
   protected var vertexCount:Int = 0
@@ -32,6 +32,8 @@ trait RendererVertFragDefault extends RendererVertFrag{
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexPool.array, GL_STATIC_DRAW)
 
+    //should be provided by child
+    setAttributePointers()
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
 

@@ -56,3 +56,8 @@ Coord sys:
 
               where @ is rendered world + possible ui on top of world render,
                     # any other data.
+
+Code design:
+    PixelGame class should not have any local code additions, i.e all logic, game code, particular rendering
+    should occur beyond PixelGame class. It is a core class that defines all engine features that should be used
+    by passing some events, callbacks, registering something to appropriate managers

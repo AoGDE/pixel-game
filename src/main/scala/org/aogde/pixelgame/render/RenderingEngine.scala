@@ -5,6 +5,7 @@ import java.io.File
 
 import org.aogde.pixelgame.component.WindowInfo
 import org.aogde.pixelgame.config.Defaults
+import org.aogde.pixelgame.core.PixelGame
 import org.aogde.pixelgame.render.definition._
 import org.aogde.pixelgame.render.shader.{Shader, ShaderUtils}
 import org.lwjgl.glfw.GLFW.glfwSwapBuffers
@@ -14,13 +15,14 @@ import org.lwjgl.opengl.GL11._
 import org.lwjgl.opengl.GL20._
 import org.lwjgl.opengl.GL30._
 import russoul.lib.common.Implicits._
+import russoul.lib.common._
 
 import scala.collection.{TraversableLike, mutable}
 
 /**
   * Created by russoul on 14.07.2017.
   */
-class RenderingEngine {
+class RenderingEngine(private val game: PixelGame) {
 
   //not used currently
   //class RenderInfo[Life <: RenderLifetime, Trans <: RenderTransformation](val lifetime: Life, val transformation : Trans, renderer: RendererVertFrag)
@@ -95,7 +97,10 @@ class RenderingEngine {
       def draw(windowInfo: WindowInfo): Unit ={
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) // clear the framebuffer
 
-        glClearColor(Defaults.initialBackgroundColor._1, Defaults.initialBackgroundColor._2, Defaults.initialBackgroundColor._3, 1)
+        glClearColor(Defaults.initialBackgroundColor._0, Defaults.initialBackgroundColor._1, Defaults.initialBackgroundColor._2, 1)
+
+        drawUI(windowInfo)
+
 
         glfwSwapBuffers(windowInfo.getID()) // swap the color buffers
       }
@@ -106,15 +111,18 @@ class RenderingEngine {
           val shaderName = render.getShaderName()
           val shader = defaultShaders(shaderName)
           shader.enable()
-          //TODO deal with textures + extra values to be passed to rendering pipeline
+          //TODO deal with textures + extra values to be passed to the rendering pipeline
 
+          shader.setMat4("P", Mat4F.ortho(0, windowInfo.getWidth(), windowInfo.getHeight(), 0 , -1, 1), transpose = false) //TODO cache
+          shader.setMat4("V", Mat4F.identity(), transpose = true) //TODO all uniforms are persistent (all values are remembered after unbound), no need to setup each time if no change has been made
+          //shader.setMat4("P", Mat4F.identity())
           render.construct()
-          render.setAttributePointers()
           render.draw()
           render.deconstruct()
-
           shader.disable()
         }
+
+        lifetimeOneDrawUIRenderers.clear()
       }
     }
 

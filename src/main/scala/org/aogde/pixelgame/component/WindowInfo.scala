@@ -13,4 +13,7 @@ class WindowInfo(private var width: Float, private var height: Float, private va
   def getID() = id
   def setID(id: Long) = this.id = id
 
+  def const() = WindowInfoConst(width, height, id)
 }
+
+case class WindowInfoConst(width: Float, height: Float, id: Long)
