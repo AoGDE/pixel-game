@@ -13,7 +13,7 @@ import russoul.lib.common.Implicits._
   * Created by russoul on 28.01.17.
   */
 class Shader(vertexSource: String, fragmentSource: String) {
-  final var ID: Int = ShaderUtils.createProgram(vertexSource, fragmentSource)
+  final val ID: Int = ShaderUtils.createProgram(vertexSource, fragmentSource)
   protected var locationCache: util.HashMap[String, Integer] = new HashMap[String, Integer]
   protected var enabled: Boolean = false
 
@@ -71,6 +71,12 @@ class Shader(vertexSource: String, fragmentSource: String) {
     glUniform4f(getUniform(name), vector.x, vector.y, vector.z, vector.w)
   }
 
+  /**
+    *
+    * @param name
+    * @param matrix
+    * @param transpose is the input matrix going to be transposed internally by OpenGL
+    */
   def setMat4(name: String, matrix: Mat4F, transpose: Boolean = false)
   {
 

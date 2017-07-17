@@ -85,14 +85,16 @@ class RenderingEngine(private val game: PixelGame) {
       var curRenderID = Long.MinValue //TODO that is not enough, refresh it somehow
 
 
+
+
+
       //these renderers need to be updated each frame, fully cleared after each framebuffer swap
       //those match LifetimeOneDraw lifetime
 
       //those things always must contain checked and working info,
       //so no extra checking is required while performing actual drawing
       //TODO implement sorting renderers by shader as switching program(shader) is an expensive operation
-      val lifetimeOneDrawWorldRenderers = new mutable.HashMap[RenderID, RendererVertFrag]
-      val lifetimeOneDrawUIRenderers = new mutable.HashMap[RenderID, RendererVertFrag]
+      val lifetimeOneDrawRenderers = new mutable.HashMap[RenderID, (RendererVertFrag,User.ShaderDataProvider)]
 
       def draw(windowInfo: WindowInfo): Unit ={
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) // clear the framebuffer
@@ -106,23 +108,21 @@ class RenderingEngine(private val game: PixelGame) {
       }
 
       private def drawUI(windowInfo: WindowInfo): Unit ={
-        for(renderInfo <- lifetimeOneDrawUIRenderers){
-          val render = renderInfo._2
+        for(renderInfo <- lifetimeOneDrawRenderers.values){
+          val render = renderInfo._1
           val shaderName = render.getShaderName()
           val shader = defaultShaders(shaderName)
           shader.enable()
-          //TODO deal with textures + extra values to be passed to the rendering pipeline
 
-          shader.setMat4("P", Mat4F.ortho(0, windowInfo.getWidth(), windowInfo.getHeight(), 0 , -1, 1), transpose = false) //TODO cache
-          shader.setMat4("V", Mat4F.identity(), transpose = true) //TODO all uniforms are persistent (all values are remembered after unbound), no need to setup each time if no change has been made
-          //shader.setMat4("P", Mat4F.identity())
+          renderInfo._2.provide(shader)
+
           render.construct()
           render.draw()
           render.deconstruct()
           shader.disable()
         }
 
-        lifetimeOneDrawUIRenderers.clear()
+        lifetimeOneDrawRenderers.clear()
       }
     }
 
@@ -131,37 +131,62 @@ class RenderingEngine(private val game: PixelGame) {
 
   object User{
 
+    //used to set shader uniforms by user and returns the shader back
+    trait ShaderDataProvider{
+      def provide(shader: Shader) : Shader
+    }
+
     class UnsupportedRenderLifetimeException(lifetime: RenderLifetime) extends Exception("Unsupported render lifetime : " + lifetime.name())
     class UnsupportedRenderTransformationException(tr : RenderTransformation) extends Exception("Unsupported render transformation : " + tr.name())
 
-    //TODO
-    //def push(lifetime, whereToRender, renderer) : ID = ???
-    //lifetime defines when the renderer will be destroyed (after one frame draw or after a some event)
-    //whereToRender defines some basic transformations like camera and type or projection before drawing
-    //renderer is all other information required to draw a shape
+
 
     //multithread-unsafe
-    def push[Life <: RenderLifetime, Trans <: RenderTransformation](lifetime: Life, transformation: Trans, renderer: RendererVertFrag): RenderID ={
+    /**
+      *
+      * @param lifetime how fast the data will be deleted
+      * @param transformation default transformation for shader
+      * @param renderer
+      * @param shaderDataProvider extra data for shader to be set by System renderer before drawing
+      * @tparam Life
+      * @tparam Trans
+      * @return
+      */
+    def push[Life <: RenderLifetime, Trans <: RenderTransformation](lifetime: Life, transformation: Trans, renderer: RendererVertFrag, shaderDataProvider: Option[ShaderDataProvider] = None): RenderID ={
 
       if(!System.defaultShaders.contains(renderer.getShaderName())) throw new System.NoSuchShaderException(renderer.getShaderName())
 
       lifetime match{
         case LifetimeOneDraw =>
 
-          var dest = None : Option[mutable.HashMap[RenderID, RendererVertFrag]]
+          //TODO deal with textures + extra values to be passed to the rendering pipeline
+          val providedByUser : Shader => Shader = if(shaderDataProvider.nonEmpty) shaderDataProvider.get.provide else (x : Shader) => x
+          var combinedProvider : ShaderDataProvider = null
 
           transformation match{
             case TransformationUI =>
-              dest = Some(System.Render.lifetimeOneDrawUIRenderers)
-            case TransformationWorld =>
-              dest = Some(System.Render.lifetimeOneDrawWorldRenderers)
+              val windowInfo = game.getConstWindowInfo()
+
+              val transformationUI = (shader: Shader) => {
+                shader.setMat4("P",Mat4F.ortho(0, windowInfo.width, windowInfo.height, 0 , -1, 1) , transpose = false) //TODO cache
+                shader.setMat4("V", Mat4F.identity(), transpose = true) //TODO all uniforms are persistent (all values are remembered after unbound), no need to setup each time if no change has been made
+
+                shader
+              }
+
+              combinedProvider = (shader: Shader) => {transformationUI(shader);providedByUser(shader)} //combining providers
+
+            //case TransformationWorld =>
+            case TransformationNone =>
+              //no extra default transformation
+              combinedProvider = (shader : Shader) => providedByUser(shader)
             case unsupported => throw new UnsupportedRenderTransformationException(unsupported)
           }
 
           val id = System.Render.curRenderID
           val ret = new RenderID(id)
           System.Render.curRenderID += 1
-          dest.get += (ret -> renderer)
+          System.Render.lifetimeOneDrawRenderers += (ret -> (renderer -> combinedProvider))
           ret
 
         case unsupported => throw new UnsupportedRenderLifetimeException(unsupported)

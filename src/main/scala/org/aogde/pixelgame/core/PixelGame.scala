@@ -30,7 +30,7 @@ class PixelGame{
   val registry = new GameRegistry(this)
   private val windowInfo = new WindowInfo(Defaults.initialWindowWidth, Defaults.initialWindowHeight)
 
-
+  def getConstWindowInfo() = windowInfo.const()
 
   def start(): Unit ={
     println("Using LWJGL " + Version.getVersion)
